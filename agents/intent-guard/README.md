@@ -344,54 +344,58 @@ IntentGuard implements defense-in-depth guardrails across five distinct layers t
 
 ---
 
-## Future Improvements
+## In-Editor Integration & FastMCP Roadmap
 
-- [ ] Add deterministic pre-checks (Ruff linting, syntax validation) before LLM review
-- [ ] Git integration — automatically fetch diffs from GitHub / GitLab PRs
-- [ ] Sandbox code execution — run existing tests against the generated code
-- [ ] Test generation — create edge-case tests for the changed code
-- [ ] Multi-provider support (Anthropic Claude, OpenAI, local models via Ollama)
-- [ ] MCP server mode for integration with coding assistants
-- [ ] Persistent review history and trend tracking
-- [ ] CI/CD pipeline integration (GitHub Action)
+IntentGuard is architected to seamlessly embed into developer workflows without requiring developers to switch tools or write custom IDE plugins. 
+
+### FastMCP Integration Architecture (Python 3.10+)
+
+Modern AI IDEs like **Cursor**, **Google Antigravity**, and **VS Code (Copilot/Claude)** natively support the open **Model Context Protocol (MCP)**. IntentGuard provides a planned FastMCP server module that exposes correctness auditing as native IDE tools:
+
+```python
+# Planned FastMCP Integration (intent_guard/mcp_server.py)
+# Compatible with Cursor, Antigravity, and Claude Desktop via stdio/SSE
+from fastmcp import FastMCP
+from intent_guard.models import ReviewRequest
+from intent_guard.runner import run_review
+from intent_guard.guardrails import generate_markdown_scorecard
+
+mcp = FastMCP("IntentGuard")
+
+@mcp.tool()
+async def audit_intent_compliance(intent_context: str, code_diff: str, language: str = "python") -> str:
+    """Audit AI-generated code against original JIRA tickets or specs for intent drift."""
+    request = ReviewRequest(intent_context=intent_context, code_diff=code_diff, language=language)
+    verdict = await run_review(request)
+    return generate_markdown_scorecard(verdict)
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+### Developer User Experience
+1. **Cursor Composer / Antigravity Chat:**
+   Developers can invoke IntentGuard directly inside their AI chat pane:
+   > *"@intentguard verify my staged changes against JIRA-1234 before I commit."*
+2. **Git Pre-Push Gate:**
+   A local hook automatically catches spec drift and security misinterpretations before code leaves the local machine.
+3. **CI/CD Pull Request Gate:**
+   Automatically posts the `INTENTGUARD_REPORT.md` scorecard as an inline PR comment and check run.
 
 ---
 
-## License
+## Future Roadmap
 
-*This project is contributed under the repository's open-source license.*
-
-
----
-
-## Known Limitations
-
-- **LLM-dependent accuracy**: The quality of the review depends on the underlying Gemini model's reasoning capabilities. Complex architectural requirements may be partially assessed.
-- **No code execution**: v1 does not execute the generated code or run tests — it performs static analysis via LLM reasoning only.
-- **Single-language focus**: While the agent can review any language, the examples and testing focus on Python.
-- **No git integration**: You must manually provide the diff — the agent does not fetch diffs from GitHub/GitLab PRs (planned for v2).
-- **Token limits**: Very large diffs may exceed the model's context window.
-
----
-
-## Security & Privacy Considerations
-
-- **Secrets Handling**: API keys are loaded from environment variables via `.env` files, which are excluded from version control by `.gitignore`.
-- **Data Privacy**: Intent context and code diffs are sent to the Google Gemini API for processing. If your code is sensitive, consider using a self-hosted model endpoint.
-- **Safety**: This agent performs read-only analysis — it does not execute code, modify files, or make any changes to your codebase.
-
----
-
-## Future Improvements
-
-- [ ] Add deterministic pre-checks (Ruff linting, syntax validation) before LLM review
-- [ ] Git integration — automatically fetch diffs from GitHub / GitLab PRs
-- [ ] Sandbox code execution — run existing tests against the generated code
-- [ ] Test generation — create edge-case tests for the changed code
-- [ ] Multi-provider support (Anthropic Claude, OpenAI, local models via Ollama)
-- [ ] MCP server mode for integration with coding assistants
-- [ ] Persistent review history and trend tracking
-- [ ] CI/CD pipeline integration (GitHub Action)
+- [x] Multi-pass intent-to-implementation reasoning engine (Google ADK + Gemini 3.5 Flash)
+- [x] Deterministic diff and AST static validation tools
+- [x] Multi-layered prompt injection & adversarial pattern guardrails
+- [x] Zero-write non-destructive startup assertions
+- [x] Rich terminal interface, structured JSON, & Markdown scorecard export
+- [x] FastAPI REST service (`/review`, `/health`)
+- [ ] **FastMCP Server integration** (Native stdio/SSE tools for Cursor, Antigravity, and VS Code)
+- [ ] **GitHub Action / GitLab CI Bot** (Automated inline PR diff commenting and merge blocking)
+- [ ] **Automated Test Generation** (Synthesizing edge-case tests targeted directly at unverified requirements)
+- [ ] **SARIF Diagnostic Output** (Direct red/yellow squiggly line diagnostics inside the IDE Problems pane)
 
 ---
 
