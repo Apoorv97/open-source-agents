@@ -10,8 +10,10 @@ Experience IntentGuard in action through an Apple-keynote style 3D interactive v
 
 <p align="center">
   <a href="./demo.html">
-    <img src="./demo_preview.svg" alt="IntentGuard Interactive Demo Advert" width="100%"/>
+    <img src="./demo.gif" alt="IntentGuard Demo Video Advert" width="100%"/>
   </a>
+  <br/>
+  <em>🎥 <b>Live Looping Demo Advert</b> • Auto-playing above • Click image or launch <a href="./demo.html"><code>demo.html</code></a> for interactive 3D camera controls</em>
 </p>
 
 ### 🚀 Launch the Demo Locally
