@@ -4,6 +4,41 @@
 
 ---
 
+## 🎬 Product Demo Video & Interactive Advert
+
+Experience IntentGuard in action through an Apple-keynote style 3D interactive video advert. It showcases the autonomous review loop, prompt injection defense, AST diff laser scan, and in-editor FastMCP workflow with dynamic camera transitions:
+
+<p align="center">
+  <a href="./demo.html">
+    <img src="./demo_preview.svg" alt="IntentGuard Interactive Demo Advert" width="100%"/>
+  </a>
+</p>
+
+### 🚀 Launch the Demo Locally
+Open [`demo.html`](./demo.html) directly in any modern browser:
+
+```bash
+# macOS
+open agents/intent-guard/demo.html
+
+# Linux
+xdg-open agents/intent-guard/demo.html
+
+# Windows
+start agents/intent-guard/demo.html
+```
+
+#### What's in the 5 Key Scenes:
+1. **Scene 1: The AI Blindspot** — Cursor & Copilot generating code with silent scope creep (`/v1/auth/exchange` modifying database schemas unprompted).
+2. **Scene 2: Adversarial Shield** — Prompt injection attacks embedded in untrusted JIRA tickets trapped and quarantined by regex & XML perimeter defenses.
+3. **Scene 3: Deep AST & Diff Audit** — Cinematic laser scan sweeping across unified diffs with real-time token metrics and structural diff analysis.
+4. **Scene 4: Executive Verdict** — Camera zooms into the high-contrast compliance scorecard highlighting unauthorized changes.
+5. **Scene 5: In-Editor FastMCP** — Running `IntentGuard: Audit Staged Changes` directly inside Cursor / Antigravity via stdio MCP.
+
+> 💡 **Interactive Keyboard Shortcuts**: The demo auto-plays in a loop. Press <kbd>Space</kbd> to Pause/Resume, <kbd>←</kbd> / <kbd>→</kbd> to jump between scenes, <kbd>1</kbd>–<kbd>5</kbd> for direct scene selection, and toggle playback speed (0.5x – 2x).
+
+---
+
 ## Overview
 
 ### Problem Statement & Intended Users
