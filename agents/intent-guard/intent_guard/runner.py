@@ -28,6 +28,12 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from .agent import root_agent
+from .guardrails import (
+    attach_guardrail_issues,
+    build_hardened_user_message,
+    scan_for_prompt_injection,
+    validate_request_bounds,
+)
 from .models import ReviewRequest, ReviewVerdict
 
 load_dotenv()
@@ -44,7 +50,7 @@ _session_counter = 0
 
 
 async def run_review(request: ReviewRequest, max_retries: int = 2) -> ReviewVerdict:
-    """Execute a full correctness review and return a structured verdict.
+    """Execute a full correctness review with active security guardrails.
 
     Args:
         request: The review request containing intent context and code diff.
@@ -56,11 +62,20 @@ async def run_review(request: ReviewRequest, max_retries: int = 2) -> ReviewVerd
     global _session_counter
     _session_counter += 1
 
+    # Guardrail 1: Enforce input bounds and size limits (DoS protection)
+    validate_request_bounds(request)
+
+    # Guardrail 2: Scan for prompt injection and adversarial manipulation
+    combined_untrusted = f"{request.intent_context}\n{request.code_diff}"
+    if request.repo_context:
+        combined_untrusted += f"\n{request.repo_context}"
+    injection_warnings = scan_for_prompt_injection(combined_untrusted)
+
     user_id = "reviewer_user"
     session_id = f"review_session_{_session_counter}"
 
-    # Build the user message that includes both intent and code diff.
-    user_message = _build_user_message(request)
+    # Guardrail 3: Build hardened prompt with untrusted data isolation
+    user_message = build_hardened_user_message(request, injection_warnings)
 
     last_error = None
     events = []
@@ -106,7 +121,10 @@ async def run_review(request: ReviewRequest, max_retries: int = 2) -> ReviewVerd
                     break
 
     # Parse the agent's JSON response into our Pydantic model.
-    return _parse_verdict(final_response_text)
+    verdict = _parse_verdict(final_response_text)
+
+    # Guardrail 4: Attach detected prompt injection issues to final verdict
+    return attach_guardrail_issues(verdict, injection_warnings)
 
 
 def _build_user_message(request: ReviewRequest) -> str:

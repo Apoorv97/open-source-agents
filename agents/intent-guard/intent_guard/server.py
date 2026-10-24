@@ -61,8 +61,14 @@ async def review_code(request: ReviewRequest) -> ReviewVerdict:
             detail="code_diff must not be empty.",
         )
 
-    verdict = await run_review(request)
-    return verdict
+    try:
+        verdict = await run_review(request)
+        return verdict
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Guardrail validation failed: {e}",
+        )
 
 
 if __name__ == "__main__":

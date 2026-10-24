@@ -183,6 +183,12 @@ def main():
     parser.add_argument("--language", type=str, default="python", help="Programming language (default: python)")
     parser.add_argument("--repo-context", type=str, help="Path to optional repo context file")
     parser.add_argument("--json", action="store_true", help="Output raw JSON instead of rich display")
+    parser.add_argument(
+        "--report",
+        nargs="?",
+        const="INTENTGUARD_REPORT.md",
+        help="Export Markdown audit scorecard to file (default: INTENTGUARD_REPORT.md)",
+    )
 
     args = parser.parse_args()
 
@@ -215,14 +221,24 @@ def main():
         sys.exit(1)
 
     # Run the review.
-    console.print("[dim]Analyzing intent and cross-referencing code changes...[/dim]")
-    verdict = asyncio.run(run_review(request))
+    console.print("[dim]Analyzing intent and cross-referencing code changes (with active guardrails)...[/dim]")
+    try:
+        verdict = asyncio.run(run_review(request))
+    except ValueError as val_err:
+        console.print(f"[bold red]Guardrail validation error:[/bold red] {val_err}")
+        sys.exit(1)
 
     # Output.
     if args.json:
         print(json.dumps(verdict.model_dump(), indent=2))
     else:
         display_verdict(verdict)
+
+    if args.report:
+        from .guardrails import generate_markdown_scorecard
+        report_md = generate_markdown_scorecard(verdict)
+        Path(args.report).write_text(report_md, encoding="utf-8")
+        console.print(f"[bold green]✓ Markdown audit scorecard saved to: {args.report}[/bold green]\n")
 
 
 if __name__ == "__main__":
